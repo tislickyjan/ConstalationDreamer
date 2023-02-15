@@ -2,11 +2,10 @@ from PIL import Image
 import numpy as np
 import Draw
 import ConstalationParser as conPar
-from SpaceObject import Planet, Sun, Asteroids
+from Sun import Sun
+from Asteroids import Asteroids
+from Planet import Planet
 
-#sun = 180*1.48
-# orbA,orbB = 400*2,75*2
-# step = 120
 
 # vypocítava celou vyslednou soustavu na zaklade parametru, pripadne upravuje vysledek
 class ConstalationDreamer:
@@ -41,7 +40,8 @@ class ConstalationDreamer:
 
     def GenerateSpaceEnvironment(self, randTrans):
         for i in range(self.numberOfSuns):
-            position = self.drawTool.imageSize/2 + np.array((np.random.randint(low=-200,high=200),np.random.randint(low=-20,high=20)))
+            position = self.drawTool.imageSize/2 + np.array((np.random.randint(low=-200,high=200),
+                                                             np.random.randint(low=-20, high=20)))
             local_sun = self.par.ReadSunInfo(i)
             self.suns.append(Sun(position, local_sun["size"], local_sun["color"], local_sun["name"]))
         for i in range(self.numberOfPlanets):
@@ -53,11 +53,11 @@ class ConstalationDreamer:
             else:
                 self.PlacePlanet(position, size, spaceObject)
 
-    def SunOrbitalPlanets(self, randTrans, angle, iter):
-        for i in range(iter[0], iter[1], iter[2]):
+    def SunOrbitalPlanets(self, randTrans, angle, iterrange):
+        for i in range(iterrange[0], iterrange[1], iterrange[2]):
             if type(self.planets[i]) is not Asteroids:
                 position = self.drawTool.imageSize/2 + randTrans[i]
-                self.drawTool.DrawSunOrbital(position, (self.orbA+i*self.step,self.orbB+i*self.step//3), angle)
+                self.drawTool.DrawSunOrbital(position, (self.orbA+i*self.step, self.orbB+i*self.step // 3), angle)
             if type(self.planets[i]) is Asteroids:
                 self.drawTool.DrawAsteroidField(self.planets[i], angle)
             elif angle[0] <= self.planets[i].t <= angle[1]:
@@ -65,12 +65,11 @@ class ConstalationDreamer:
 
     def PlacePlanet(self, pos, size, obj):
         t = np.random.uniform(low=0.0,high=2*np.pi)
-        planetPosition = np.array((size[0]*np.cos(t),size[1]*np.sin(t))) + pos
+        planetPosition = np.array((size[0]*np.cos(t),size[1]*np.sin(t)))
         planetSize = np.array((obj["size"],obj["size"]))
         lu, rb = planetPosition - planetSize, planetPosition + planetSize
-        #self.planets.append(((lu[0], lu[1], rb[0], rb[1]), planetPosition, planetSize, t))
-        self.planets.append(Planet(obj["name"], obj["biom"],(lu[0], lu[1], rb[0], rb[1]), planetPosition, planetSize, t,
-                                   rings=obj["asteroids"], moons=obj["moons"]))
+        self.planets.append(Planet(obj["name"], obj["biom"],(lu[0], lu[1], rb[0], rb[1]), planetPosition, pos,
+                                   planetSize, t, rings=obj["asteroids"], moons=obj["moons"]))
 
     def AsteroidField(self, pos, size, obj):
         self.planets.append(Asteroids(obj["biom"], size, pos, obj["name"]))
@@ -96,7 +95,7 @@ class ConstalationDreamer:
 if __name__ == "__main__":
     cdreamer = ConstalationDreamer()
     cdreamer.Dream()
-    cdreamer.finalImage = cdreamer.drawTool.finalImage.resize(cdreamer.drawTool.imageSize, resample=Image.ANTIALIAS)
+    cdreamer.finalImage = cdreamer.drawTool.finalImage.resize(cdreamer.drawTool.imageSize // 2, resample=Image.LANCZOS)
     cdreamer.finalImage.show()
 
     """
