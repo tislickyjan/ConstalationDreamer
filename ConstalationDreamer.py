@@ -9,7 +9,8 @@ from Planet import Planet
 
 # vypocítava celou vyslednou soustavu na zaklade parametru, pripadne upravuje vysledek
 class ConstalationDreamer:
-    drawTool = None
+    final_image = None
+    draw_tool = None
     planets = []
     suns = []
     orbA = 0
@@ -17,86 +18,89 @@ class ConstalationDreamer:
     step = 0
 
     def __init__(self):
-        self.numberOfPlanets = 10
-        self.numberOfSuns = 1
-        self.drawTool = Draw.ConstalationDrawer()
-        self.par = conPar.ConstalationParser()
-        self.par.Init("Jan Tislický")
+        self.number_of_planets = 10
+        self.number_of_suns = 1
+        self.draw_tool = Draw.ConstalationDrawer()
+        self.parsed_info = conPar.ConstalationParser()
+        self.parsed_info.Init("Jan Tislický")
 
     def Dream(self):
         # nacti potrebne informace
-        self.orbA, self.orbB, self.step = self.par.ReadGeneralInfo()
-        self.numberOfSuns, self.numberOfPlanets = self.par.ReadSunsCount(), self.par.ReadObjectsCount()
+        self.orbA, self.orbB, self.step = self.parsed_info.read_general_info()
+        self.number_of_suns, self.number_of_planets = \
+            self.parsed_info.read_suns_count(), self.parsed_info.read_objects_count()
         # random displace for palnets and orbitals, asteroids...
-        randPos = np.random.randint(low=-15,high=15,size=self.numberOfPlanets)
-        self.GenerateSpaceEnvironment(randPos)
+        rand_position = np.random.randint(low=-15, high=15, size=self.number_of_planets)
+        self.generate_space_environment(rand_position)
 
-        self.SunOrbitalPlanets(randPos, (np.pi, np.pi*2), (self.numberOfPlanets-1, -1, -1))
+        self.sun_orbital_planets(rand_position, (np.pi, np.pi * 2), (self.number_of_planets - 1, -1, -1))
 
-        for i in range(self.numberOfSuns):
-            self.drawTool.DrawSun(self.suns[i])
+        for i in range(self.number_of_suns):
+            self.draw_tool.draw_sun(self.suns[i])
 
-        self.SunOrbitalPlanets(randPos, (0, np.pi), (0,self.numberOfPlanets,1))
+        self.sun_orbital_planets(rand_position, (0, np.pi), (0, self.number_of_planets, 1))
 
-    def GenerateSpaceEnvironment(self, randTrans):
-        for i in range(self.numberOfSuns):
-            position = self.drawTool.imageSize/2 + np.array((np.random.randint(low=-200,high=200),
-                                                             np.random.randint(low=-20, high=20)))
-            local_sun = self.par.ReadSunInfo(i)
+    def generate_space_environment(self, rand_transform):
+        for i in range(self.number_of_suns):
+            position = self.draw_tool.image_size / 2 + np.array((np.random.randint(low=-200, high=200),
+                                                                 np.random.randint(low=-20, high=20)))
+            local_sun = self.parsed_info.read_sun_info(i)
             self.suns.append(Sun(position, local_sun["size"], local_sun["color"], local_sun["name"]))
-        for i in range(self.numberOfPlanets):
-            position = self.drawTool.imageSize / 2 + randTrans[i]
+        for i in range(self.number_of_planets):
+            position = self.draw_tool.image_size / 2 + rand_transform[i]
             size = (self.orbA + i * self.step, self.orbB + i * self.step // 3)
-            spaceObject = self.par.ReadObjectInfo(i)
-            if spaceObject["size"] is None:
-                self.AsteroidField(position, size, spaceObject)
+            space_object = self.parsed_info.read_object_info(i)
+            if space_object["size"] is None:
+                self.asteroid_field(position, size, space_object)
             else:
-                self.PlacePlanet(position, size, spaceObject)
+                self.place_planet(position, size, space_object)
 
-    def SunOrbitalPlanets(self, randTrans, angle, iterrange):
-        for i in range(iterrange[0], iterrange[1], iterrange[2]):
-            if type(self.planets[i]) is not Asteroids:
-                position = self.drawTool.imageSize/2 + randTrans[i]
-                self.drawTool.DrawSunOrbital(position, (self.orbA+i*self.step, self.orbB+i*self.step // 3), angle)
-            if type(self.planets[i]) is Asteroids:
-                self.drawTool.DrawAsteroidField(self.planets[i], angle)
+    def sun_orbital_planets(self, rand_trans, angle, iterator_range):
+        for i in range(iterator_range[0], iterator_range[1], iterator_range[2]):
+            if not isinstance(self.planets[i], Asteroids):
+                position = self.draw_tool.image_size / 2 + rand_trans[i]
+                self.draw_tool.draw_sun_orbital(position, (self.orbA + i * self.step, self.orbB + i * self.step // 3), angle)
+            if isinstance(self.planets[i], Asteroids):
+                self.draw_tool.draw_asteroid_field(self.planets[i], angle)
             elif angle[0] <= self.planets[i].t <= angle[1]:
-                self.drawTool.DrawPlanet(self.planets[i])
+                self.draw_tool.draw_planet(self.planets[i])
 
-    def PlacePlanet(self, pos, size, obj):
+    def place_planet(self, pos, size, obj):
         t = np.random.uniform(low=0.0,high=2*np.pi)
-        planetPosition = np.array((size[0]*np.cos(t),size[1]*np.sin(t)))
-        planetSize = np.array((obj["size"],obj["size"]))
-        lu, rb = planetPosition - planetSize, planetPosition + planetSize
-        self.planets.append(Planet(obj["name"], obj["biom"],(lu[0], lu[1], rb[0], rb[1]), planetPosition, pos,
-                                   planetSize, t, rings=obj["asteroids"], moons=obj["moons"]))
+        planet_position = np.array((size[0]*np.cos(t),size[1]*np.sin(t)))
+        planet_size = np.array((obj["size"],obj["size"]))
+        lu, rb = planet_position - planet_size, planet_position + planet_size
+        self.planets.append(Planet(obj["name"], obj["biom"],(lu[0], lu[1], rb[0], rb[1]), planet_position, pos,
+                                   planet_size, t, rings=obj["asteroids"], moons=obj["moons"]))
 
-    def AsteroidField(self, pos, size, obj):
+    def asteroid_field(self, pos, size, obj):
         self.planets.append(Asteroids(obj["biom"], size, pos, obj["name"]))
 
     #TODO: Nebula effect in system
-    # def AddNebula(self):
+    # def add_nebula(self):
     #     ...
 
     #TODO: Background stars
-    # def BackgroundStars(self):
+    # def background_stars(self):
     #     ...
 
     #TODO: Megastructures
-    # def Megastructures(self):
+    # def megastructures(self):
     #    ...
 
     #TODO: Fauna and flora
-    # def Biomes(self):
+    # def biomes(self):
     #    ...
 
     #TODO: nice to have - vsechny planety budou videt a zadna nebude za sluncem plus rovznomerne rozlozeni
 
+
 if __name__ == "__main__":
     cdreamer = ConstalationDreamer()
     cdreamer.Dream()
-    cdreamer.finalImage = cdreamer.drawTool.finalImage.resize(cdreamer.drawTool.imageSize // 2, resample=Image.LANCZOS)
-    cdreamer.finalImage.show()
+    cdreamer.final_image = cdreamer.draw_tool.final_image.resize(cdreamer.draw_tool.image_size // 2,
+                                                                 resample=Image.LANCZOS)
+    cdreamer.final_image.show()
 
     """
         rotovani planet

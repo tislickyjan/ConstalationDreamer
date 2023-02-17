@@ -26,18 +26,18 @@ class ConstalationDreamer:
         self.SunOrbitalPlanets(randPos, (np.pi, np.pi*2), (self.numberOfPlanets-1, -1, -1))
 
         for i in range(self.numberOfSuns):
-            self.drawTool.DrawSun(self.suns[i])
+            self.drawTool.draw_sun(self.suns[i])
 
         self.SunOrbitalPlanets(randPos, (0, np.pi), (0,self.numberOfPlanets,1))
 
     def GenerateSpaceEnvironment(self, randTrans):
         for i in range(self.numberOfSuns):
-            position = self.drawTool.imageSize/2 + np.array((np.random.randint(low=-200,high=200),np.random.randint(low=-20,high=20)))
+            position = self.drawTool.image_size / 2 + np.array((np.random.randint(low=-200, high=200), np.random.randint(low=-20, high=20)))
             size = 180 * np.random.uniform(low=0.1,high=1.58)
             color = (np.random.randint(low=128, high=255), np.random.randint(low=250, high=255), np.random.randint(low=0, high=32))
             self.suns.append(Sun(color,position,size,f"Kappa-{i+1}"))
         for i in range(self.numberOfPlanets):
-            position = self.drawTool.imageSize / 2 + randTrans[i]
+            position = self.drawTool.image_size / 2 + randTrans[i]
             size = (orbA + i * step, orbB + i * step // 3)
             spaceObject = np.random.randint(low=0, high=10)
             if spaceObject >= 8:
@@ -48,12 +48,12 @@ class ConstalationDreamer:
     def SunOrbitalPlanets(self, randTrans, angle, iter):
         for i in range(iter[0], iter[1], iter[2]):
             if type(self.planets[i]) is not Asteroids:
-                position = self.drawTool.imageSize/2 + randTrans[i]
-                self.drawTool.DrawSunOrbital(position, (orbA+i*step,orbB+i*step//3), angle)
+                position = self.drawTool.image_size / 2 + randTrans[i]
+                self.drawTool.draw_sun_orbital(position, (orbA + i * step, orbB + i * step // 3), angle)
             if type(self.planets[i]) is Asteroids:
-                self.drawTool.DrawAsteroidField(self.planets[i], angle)
+                self.drawTool.draw_asteroid_field(self.planets[i], angle)
             elif angle[0] <= self.planets[i].t <= angle[1]:
-                self.drawTool.DrawPlanet(self.planets[i])
+                self.drawTool.draw_planet(self.planets[i])
 
     def PlacePlanet(self, orbSize, center):
         t = np.random.uniform(low=0.0,high=2*np.pi)
@@ -93,7 +93,7 @@ class ConstalationDreamer:
 if __name__ == "__main__":
     cdreamer = ConstalationDreamer()
     cdreamer.Dream()
-    cdreamer.finalImage = cdreamer.drawTool.finalImage.resize(cdreamer.drawTool.imageSize, resample=Image.ANTIALIAS)
+    cdreamer.finalImage = cdreamer.drawTool.final_image.resize(cdreamer.drawTool.image_size, resample=Image.ANTIALIAS)
     cdreamer.finalImage.show()
 
     """

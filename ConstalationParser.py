@@ -1,9 +1,9 @@
 from numpy import log as nlog
 
 class ConstalationParser:
-    origString = None
-    hexRepre = None
-    hexLen = None
+    original_string = None
+    hexadecimal_representation = None
+    hexdecimal_length = None
     maxCountObj = 11
 
     # slovnik s maskami jednotlivych casti, cislo na druhem miste udava pocet nul zprava
@@ -57,28 +57,29 @@ class ConstalationParser:
     astType = ["rocks", "ice", "metals&rocks"]
 
     def Init(self, text):
-        self.origString = text
+        self.original_string = text
         try :
-            self.hexRepre = int(self.origString.encode('utf-8'), 16)
+            self.hexadecimal_representation = int(self.original_string.encode('utf-8'), 16)
         except (ValueError):
-            self.hexRepre = int(self.origString.encode('utf-8').hex(), 16)
-        self.hexLen = len(hex(self.hexRepre))-2
+            self.hexadecimal_representation = int(self.original_string.encode('utf-8').hex(), 16)
+        self.hexdecimal_length = len(hex(self.hexadecimal_representation)) - 2
 
-        while self.hexLen < 50:
-            self.hexRepre += int(hex(self.hexRepre**2 * self.hexLen), 16)
-            self.hexLen = len(hex(self.hexRepre))-2
-        if self.hexLen > 50:
-            self.hexRepre = int(str(hex(self.hexRepre))[:52],16)
-            self.hexLen = len(hex(self.hexRepre))-2
+        while self.hexdecimal_length < 50:
+            self.hexadecimal_representation += int(hex(self.hexadecimal_representation ** 2 *
+                                                       self.hexdecimal_length), 16)
+            self.hexdecimal_length = len(hex(self.hexadecimal_representation)) - 2
+        if self.hexdecimal_length > 50:
+            self.hexadecimal_representation = int(str(hex(self.hexadecimal_representation))[:52], 16)
+            self.hexdecimal_length = len(hex(self.hexadecimal_representation)) - 2
         # print(int(str(hex(self.hexRepre))[:50],16))
 
-    def MaskInput(self, mask, offset):
-        shift = self.hexLen - offset
-        res = (self.hexRepre & mask) >> ((self.hexLen - shift)*4)
+    def mask_input(self, mask, offset):
+        shift = self.hexdecimal_length - offset
+        res = (self.hexadecimal_representation & mask) >> ((self.hexdecimal_length - shift) * 4)
         return res
 
     # source: https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
-    def KelvinToRGB(self, temp):
+    def kelvin_to_rgb(self, temp):
         # print(temp)
         if temp > 40000:
             temp = 40000
@@ -126,57 +127,57 @@ class ConstalationParser:
         r, g, b = int(r), int(g), int(b)
         return r, g, b
 
-    def ClampVal(self, val, min, max):
+    def clamp_value(self, val, min, max):
         if val < min:
             return min
         if val > max:
             return max
         return val
 
-    def ReadGeneralInfo(self):
-        orbA = self.MaskInput(self.masks["orba"][0], self.masks["orba"][1])
-        orbB = self.MaskInput(self.masks["orbb"][0], self.masks["orbb"][1])
-        step = self.MaskInput(self.masks["step"][0], self.masks["step"][1])
-        return self.ClampVal(orbA, 500, 800), self.ClampVal(orbB, 90, 150), self.ClampVal(step, 110,140)
+    def read_general_info(self):
+        orbA = self.mask_input(self.masks["orba"][0], self.masks["orba"][1])
+        orbB = self.mask_input(self.masks["orbb"][0], self.masks["orbb"][1])
+        step = self.mask_input(self.masks["step"][0], self.masks["step"][1])
+        return self.clamp_value(orbA, 500, 800), self.clamp_value(orbB, 90, 150), self.clamp_value(step, 110, 140)
 
     # =============objekty=========================
-    def ReadObjectsCount(self):
+    def read_objects_count(self):
         info = self.masks["objs"]
-        count = self.MaskInput(info[0], info[1]) % self.maxCountObj
+        count = self.mask_input(info[0], info[1]) % self.maxCountObj
         if count == 0:
-            count = self.MaskInput(info[0], info[1]) >> 1
+            count = self.mask_input(info[0], info[1]) >> 1
         return count
 
-    def GetObjName(self):
-        tmp = self.origString.split(' ')
+    def get_obj_name(self):
+        tmp = self.original_string.split(' ')
         if len(tmp) > 1:
             return tmp[1][:4]
         else:
             return tmp[0][4:8].title()
 
     # precte prislusnou cast a dle ni udela planetu/pas a vrati jako tuple
-    def ReadObjectInfo(self, idx):
+    def read_object_info(self, idx):
         info = self.masks[f"obj{idx}"]
-        obj = self.MaskInput(info[0], info[1])
+        obj = self.mask_input(info[0], info[1])
         size, biom, moons, asteroid = 0, 0, 0, 0
-        name = f"{self.GetObjName()}-{idx+1}"
-        biom = self.ReadObjectBiom(idx)
+        name = f"{self.get_obj_name()}-{idx + 1}"
+        biom = self.read_object_biom(idx)
         # jedna se o pas asteroidu, ten je po celem prstenci a tak nema smysl dal cokoliv resit, pojmenovat pasy?
         if len(biom) == 3:
             # typ biomu - asteroidy, typ asteroidu, barva
             return {"size":None, "biom":biom, "asteroids":None, "moons":None, "name":None}
         size = obj & int(0x3f)
-        size = self.ClampVal(size, 10, 45)
+        size = self.clamp_value(size, 10, 45)
         # barva dle typu pasu
-        asteroid = self.ReadRings(idx)
+        asteroid = self.read_rings(idx)
         # provizorne barva bude z definovanych pro planety
-        moons = self.ReadMoon(idx)
+        moons = self.read_moon(idx)
         # vracim velikost planety, jeji barvu (biom), zda ma pas asteroidu a jake barvy, jakou barvu maji mesice / proste planety
         return {"size":size, "biom":biom, "asteroids":asteroid, "moons":moons, "name":name}
 
-    def ReadMoon(self, idx):
+    def read_moon(self, idx):
         info = self.masks[f"obj{idx}"]
-        obj = self.MaskInput(info[0], info[1])
+        obj = self.mask_input(info[0], info[1])
         moons = (obj & int(0xf0)) >> 4
         if moons >= 6 and (moons % len(self.bioms)):
             moons = (self.bioms[moons % len(self.bioms)], self.biEn[moons % len(self.bioms)])
@@ -184,9 +185,9 @@ class ConstalationParser:
             moons = None
         return moons
 
-    def ReadRings(self, idx):
+    def read_rings(self, idx):
         info = self.masks[f"obj{idx}"]
-        obj = self.MaskInput(info[0], info[1])
+        obj = self.mask_input(info[0], info[1])
         asteroid = obj & int(0x0f)
         # bude mit dany objekt prstenec
         if asteroid >= 8:
@@ -195,9 +196,9 @@ class ConstalationParser:
             asteroid = None
         return asteroid
 
-    def ReadObjectBiom(self, idx):
+    def read_object_biom(self, idx):
         info = self.masks[f"obj{idx}"]
-        obj = self.MaskInput(info[0], info[1])
+        obj = self.mask_input(info[0], info[1])
         biom = ((obj & int(0x3c)) >> 2) % len(self.bioms)
         if biom == 0:
             biom = (self.bioms[biom], self.astType[biom % len(self.astType)], self.asteroids[biom % len(self.asteroids)])
@@ -206,27 +207,27 @@ class ConstalationParser:
         return biom
 
     # ================Slunce=======================
-    def ReadSunsCount(self):
+    def read_suns_count(self):
         info = self.masks["suns"]
-        count = self.MaskInput(info[0], info[1]) % 3
+        count = self.mask_input(info[0], info[1]) % 3
         if count == 0:
             count = 1
         return count
 
     # precte prislusnou cast a dle ni udela barvu a velikost, kterou vrati jako tuple
-    def ReadSunInfo(self, idx):
+    def read_sun_info(self, idx):
         info = self.masks[f"s{idx}c"]
-        sun = self.MaskInput(info[0], info[1])
+        sun = self.mask_input(info[0], info[1])
         #TODO osetrit jmeno slunce
-        size, name = (sun & int(0x7dff) >> 4) % 270, f"{self.origString[:4]}-{idx+1}"
-        color = self.ReadSunColor(idx)
+        size, name = (sun & int(0x7dff) >> 4) % 270, f"{self.original_string[:4]}-{idx + 1}"
+        color = self.read_sun_color(idx)
         return {"size": size, "color": color, "name": name}
 
-    def ReadSunColor(self, idx):
+    def read_sun_color(self, idx):
         # if idx < 0 or idx >= 3:
         info = self.masks[f"s{idx}c"]
-        color = self.MaskInput(info[0], info[1]) >> 4
-        r, g, b = self.KelvinToRGB(color)
+        color = self.mask_input(info[0], info[1]) >> 4
+        r, g, b = self.kelvin_to_rgb(color)
         return r, g, b
 
 if __name__ == "__main__":
@@ -236,17 +237,17 @@ if __name__ == "__main__":
     # mask = int(0x0fff0000000000000000000000000000000000000000000000) # numZeros = 1
     # numZeros = par.hexLen - 46
     # print(mask)
-    print(par.origString)
-    print(hex(par.hexRepre))
+    print(par.original_string)
+    print(hex(par.hexadecimal_representation))
     # print(hex(par.hexRepre & mask))
     # print(f"Hex zapsany vysledek maskovani a posunuty vpravo {hex((par.hexRepre & mask)>>par.hexLen*4-(numZeros*4))}")
     # print(f"Vysledne cislo z retezu {((par.hexRepre & mask)>>par.hexLen*4-(numZeros*4))}")
-    print(f"snim o {par.ReadSunsCount()} hvezde")
-    print(f"kde je {par.ReadObjectsCount()} hvezdnych objektu")
+    print(f"snim o {par.read_suns_count()} hvezde")
+    print(f"kde je {par.read_objects_count()} hvezdnych objektu")
     # print(par.ReadSunColor(0))
     # print(f"hvezda ma velikost {par.ReadSunInfo(1)[0]} a jemnuje se {par.ReadSunInfo(1)[1]}")
-    for i in range(par.ReadObjectsCount()):
-        print(par.ReadObjectInfo(i))
+    for i in range(par.read_objects_count()):
+        print(par.read_object_info(i))
     # print(par.ReadObjectInfo(0))
     # print(par.ReadObjectBiom(0))
-    print(par.ReadGeneralInfo())
+    print(par.read_general_info())
