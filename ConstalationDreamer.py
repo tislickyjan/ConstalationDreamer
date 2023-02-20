@@ -22,7 +22,7 @@ class ConstalationDreamer:
         self.number_of_suns = 1
         self.draw_tool = Draw.ConstalationDrawer()
         self.parsed_info = conPar.ConstalationParser()
-        self.parsed_info.Init("Jan Tislický")
+        self.parsed_info.init("Jan Tislický")
 
     def Dream(self):
         # nacti potrebne informace
@@ -35,8 +35,8 @@ class ConstalationDreamer:
 
         self.sun_orbital_planets(rand_position, (np.pi, np.pi * 2), (self.number_of_planets - 1, -1, -1))
 
-        for i in range(self.number_of_suns):
-            self.draw_tool.draw_sun(self.suns[i])
+        for sun in self.suns:
+            sun.draw(self.draw_tool.multiplicative_factor, self.draw_tool.draw_place)
 
         self.sun_orbital_planets(rand_position, (0, np.pi), (0, self.number_of_planets, 1))
 
@@ -61,9 +61,11 @@ class ConstalationDreamer:
                 position = self.draw_tool.image_size / 2 + rand_trans[i]
                 self.draw_tool.draw_sun_orbital(position, (self.orbA + i * self.step, self.orbB + i * self.step // 3), angle)
             if isinstance(self.planets[i], Asteroids):
-                self.draw_tool.draw_asteroid_field(self.planets[i], angle)
+                self.planets[i].draw_asteroid(self.draw_tool.multiplicative_factor, self.draw_tool.draw_place, angle)
+                # self.draw_tool.draw_asteroid_field(self.planets[i], angle)
             elif angle[0] <= self.planets[i].t <= angle[1]:
-                self.draw_tool.draw_planet(self.planets[i])
+                self.planets[i].draw(self.draw_tool.multiplicative_factor, self.draw_tool.draw_place)
+                # self.draw_tool.draw_planet(self.planets[i])
 
     def place_planet(self, pos, size, obj):
         t = np.random.uniform(low=0.0,high=2*np.pi)

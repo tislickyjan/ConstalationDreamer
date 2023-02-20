@@ -56,7 +56,7 @@ class ConstalationParser:
 
     astType = ["rocks", "ice", "metals&rocks"]
 
-    def Init(self, text):
+    def init(self, text):
         self.original_string = text
         try :
             self.hexadecimal_representation = int(self.original_string.encode('utf-8'), 16)
@@ -232,7 +232,7 @@ class ConstalationParser:
 
 if __name__ == "__main__":
     par = ConstalationParser()
-    par.Init("Jan Tislický")
+    par.init("Jan Tislický")
     # par = ConstalationParser("0x236f97f5a5b55cc9d")
     # mask = int(0x0fff0000000000000000000000000000000000000000000000) # numZeros = 1
     # numZeros = par.hexLen - 46
