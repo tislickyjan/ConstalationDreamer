@@ -2,6 +2,7 @@ from PIL import Image
 import numpy as np
 import Draw
 import ConstalationParser as conPar
+import GeneralInformation as genStorage
 from Sun import Sun
 from Asteroids import Asteroids
 from Planet import Planet
@@ -11,72 +12,54 @@ from Planet import Planet
 class ConstalationDreamer:
     final_image = None
     draw_tool = None
-    planets = []
-    suns = []
-    orbA = 0
-    orbB = 0
-    step = 0
 
     def __init__(self):
-        self.number_of_planets = 10
-        self.number_of_suns = 1
-        self.draw_tool = Draw.ConstalationDrawer()
-        self.parsed_info = conPar.ConstalationParser()
-        self.parsed_info.init("Jan Tislický")
+        self.information_storage = genStorage.GeneralStorage()
+        self.draw_tool = Draw.ConstalationDrawer(self.information_storage)
+        self.parsed_info = conPar.ConstalationParser(self.information_storage)
+        # tato cast musi jit pozdeji jinam, hlavne kdyz budu chtit vystavit na web jako jednu z komponent
+        self.dream_about("Jan Tislický")
 
-    def Dream(self):
-        # nacti potrebne informace
-        self.orbA, self.orbB, self.step = self.parsed_info.read_general_info()
-        self.number_of_suns, self.number_of_planets = \
-            self.parsed_info.read_suns_count(), self.parsed_info.read_objects_count()
+    def dream_about(self, name):
+        self.parsed_info.init(name)
+        self.information_storage.set_general_information(self.parsed_info.read_general_info())
+        self.information_storage.set_number_of_objects(self.parsed_info.read_suns_count(),
+                                                       self.parsed_info.read_objects_count())
         # random displace for palnets and orbitals, asteroids...
-        rand_position = np.random.randint(low=-15, high=15, size=self.number_of_planets)
-        self.generate_space_environment(rand_position)
+        self.information_storage.set_rand_pos(np.random.randint(low=-15, high=15,
+                                                                size=self.information_storage.number_of_planets))
 
-        self.sun_orbital_planets(rand_position, (np.pi, np.pi * 2), (self.number_of_planets - 1, -1, -1))
+    def dream(self):
+        self.generate_space_environment()
 
-        for sun in self.suns:
-            sun.draw(self.draw_tool.multiplicative_factor, self.draw_tool.draw_place)
+        self.draw_tool.draw_star_system()
 
-        self.sun_orbital_planets(rand_position, (0, np.pi), (0, self.number_of_planets, 1))
-
-    def generate_space_environment(self, rand_transform):
-        for i in range(self.number_of_suns):
-            position = self.draw_tool.image_size / 2 + np.array((np.random.randint(low=-200, high=200),
-                                                                 np.random.randint(low=-20, high=20)))
+    def generate_space_environment(self):
+        for i in range(self.information_storage.number_of_suns):
+            position = self.draw_tool.image_center + np.array((np.random.randint(low=-200, high=200),
+                                                               np.random.randint(low=-20, high=20)))
             local_sun = self.parsed_info.read_sun_info(i)
-            self.suns.append(Sun(position, local_sun["size"], local_sun["color"], local_sun["name"]))
-        for i in range(self.number_of_planets):
-            position = self.draw_tool.image_size / 2 + rand_transform[i]
-            size = (self.orbA + i * self.step, self.orbB + i * self.step // 3)
+            self.information_storage.suns.append(Sun(position, local_sun["size"], local_sun["color"], local_sun["name"]))
+        for i in range(self.information_storage.number_of_planets):
+            position = self.draw_tool.image_center + self.information_storage.random_position[i]
+            size = self.information_storage.return_size(i)
             space_object = self.parsed_info.read_object_info(i)
             if space_object["size"] is None:
                 self.asteroid_field(position, size, space_object)
             else:
                 self.place_planet(position, size, space_object)
 
-    def sun_orbital_planets(self, rand_trans, angle, iterator_range):
-        for i in range(iterator_range[0], iterator_range[1], iterator_range[2]):
-            if not isinstance(self.planets[i], Asteroids):
-                position = self.draw_tool.image_size / 2 + rand_trans[i]
-                self.draw_tool.draw_sun_orbital(position, (self.orbA + i * self.step, self.orbB + i * self.step // 3), angle)
-            if isinstance(self.planets[i], Asteroids):
-                self.planets[i].draw_asteroid(self.draw_tool.multiplicative_factor, self.draw_tool.draw_place, angle)
-                # self.draw_tool.draw_asteroid_field(self.planets[i], angle)
-            elif angle[0] <= self.planets[i].t <= angle[1]:
-                self.planets[i].draw(self.draw_tool.multiplicative_factor, self.draw_tool.draw_place)
-                # self.draw_tool.draw_planet(self.planets[i])
-
     def place_planet(self, pos, size, obj):
         t = np.random.uniform(low=0.0,high=2*np.pi)
         planet_position = np.array((size[0]*np.cos(t),size[1]*np.sin(t)))
         planet_size = np.array((obj["size"],obj["size"]))
         lu, rb = planet_position - planet_size, planet_position + planet_size
-        self.planets.append(Planet(obj["name"], obj["biom"],(lu[0], lu[1], rb[0], rb[1]), planet_position, pos,
-                                   planet_size, t, rings=obj["asteroids"], moons=obj["moons"]))
+        self.information_storage.planets.append(Planet(obj["name"], obj["biom"],(lu[0], lu[1], rb[0], rb[1]),
+                                                       planet_position, pos, planet_size, t,
+                                                       rings=obj["asteroids"], moons=obj["moons"]))
 
     def asteroid_field(self, pos, size, obj):
-        self.planets.append(Asteroids(obj["biom"], size, pos, obj["name"]))
+        self.information_storage.planets.append(Asteroids(obj["biom"], size, pos, obj["name"]))
 
     #TODO: Nebula effect in system
     # def add_nebula(self):
@@ -99,7 +82,7 @@ class ConstalationDreamer:
 
 if __name__ == "__main__":
     cdreamer = ConstalationDreamer()
-    cdreamer.Dream()
+    cdreamer.dream()
     cdreamer.final_image = cdreamer.draw_tool.final_image.resize(cdreamer.draw_tool.image_size // 2,
                                                                  resample=Image.LANCZOS)
     cdreamer.final_image.show()

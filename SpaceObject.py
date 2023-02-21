@@ -11,6 +11,7 @@ class SpaceObject(metaclass=abc.ABCMeta):
 
     def calculate_bounds(self, factor):
         return self.position - np.array(self.size) * factor, self.position + np.array(self.size) * factor
+
     @abc.abstractmethod
     def draw(self, factor, canvas):
         pass

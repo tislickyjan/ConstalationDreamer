@@ -3,9 +3,9 @@ import numpy as np
 
 
 class Asteroids(SpaceObject):
-    def __init__(self, color, position, size, name):
+    def __init__(self, color, position, size, name, amount=175):
         super().__init__(position, size, color, name)
-        self.amount = 175
+        self.amount = amount
         self.angle = None
 
     def calculate_asteroid_bounds(self, position, calculated_size, factor):
@@ -23,8 +23,7 @@ class Asteroids(SpaceObject):
             for t in asteroid_positions:
                 tmp = np.random.randint(low=1, high=7)
                 asteroid_size = np.array((tmp, tmp))
-                asteroid_position = np.array((self.position[0] * np.cos(t), self.position[1] * np.sin(t))) * \
-                                    factor + self.size
+                asteroid_position = np.array((self.position[0] * np.cos(t), self.position[1] * np.sin(t))) * factor + self.size
                 direction = asteroid_position - np.array(canvas.im.size) / 2
                 asteroid_position += i * corr * (direction / np.linalg.norm(direction))
                 # lu, rb = astPosition - asteroid_size, astPosition + asteroid_size

@@ -3,7 +3,7 @@ from numpy import log as nlog
 class ConstalationParser:
     original_string = None
     hexadecimal_representation = None
-    hexdecimal_length = None
+    hexadecimal_length = None
     maxCountObj = 11
 
     # slovnik s maskami jednotlivych casti, cislo na druhem miste udava pocet nul zprava
@@ -40,7 +40,7 @@ class ConstalationParser:
         (85, 128, 0), # terran
     ]
 
-    biEn = [
+    biom_environment = [
         "asteroids",
         "lava",
         "ocean",
@@ -56,26 +56,29 @@ class ConstalationParser:
 
     astType = ["rocks", "ice", "metals&rocks"]
 
+    def __init__(self, info):
+        self.info_store = info
+
     def init(self, text):
         self.original_string = text
         try :
             self.hexadecimal_representation = int(self.original_string.encode('utf-8'), 16)
-        except (ValueError):
+        except ValueError:
             self.hexadecimal_representation = int(self.original_string.encode('utf-8').hex(), 16)
-        self.hexdecimal_length = len(hex(self.hexadecimal_representation)) - 2
+        self.hexadecimal_length = len(hex(self.hexadecimal_representation)) - 2
 
-        while self.hexdecimal_length < 50:
+        while self.hexadecimal_length < 50:
             self.hexadecimal_representation += int(hex(self.hexadecimal_representation ** 2 *
-                                                       self.hexdecimal_length), 16)
-            self.hexdecimal_length = len(hex(self.hexadecimal_representation)) - 2
-        if self.hexdecimal_length > 50:
+                                                       self.hexadecimal_length), 16)
+            self.hexadecimal_length = len(hex(self.hexadecimal_representation)) - 2
+        if self.hexadecimal_length > 50:
             self.hexadecimal_representation = int(str(hex(self.hexadecimal_representation))[:52], 16)
-            self.hexdecimal_length = len(hex(self.hexadecimal_representation)) - 2
+            self.hexadecimal_length = len(hex(self.hexadecimal_representation)) - 2
         # print(int(str(hex(self.hexRepre))[:50],16))
 
     def mask_input(self, mask, offset):
-        shift = self.hexdecimal_length - offset
-        res = (self.hexadecimal_representation & mask) >> ((self.hexdecimal_length - shift) * 4)
+        shift = self.hexadecimal_length - offset
+        res = (self.hexadecimal_representation & mask) >> ((self.hexadecimal_length - shift) * 4)
         return res
 
     # source: https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
@@ -180,7 +183,7 @@ class ConstalationParser:
         obj = self.mask_input(info[0], info[1])
         moons = (obj & int(0xf0)) >> 4
         if moons >= 6 and (moons % len(self.bioms)):
-            moons = (self.bioms[moons % len(self.bioms)], self.biEn[moons % len(self.bioms)])
+            moons = (self.bioms[moons % len(self.bioms)], self.biom_environment[moons % len(self.bioms)])
         else:
             moons = None
         return moons
@@ -203,7 +206,7 @@ class ConstalationParser:
         if biom == 0:
             biom = (self.bioms[biom], self.astType[biom % len(self.astType)], self.asteroids[biom % len(self.asteroids)])
         else:
-            biom = (self.bioms[biom], self.biEn[biom])
+            biom = (self.bioms[biom], self.biom_environment[biom])
         return biom
 
     # ================Slunce=======================

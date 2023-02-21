@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Planet(SpaceObject):
-    def __init__(self, name, color, bbox, position, shift, size, t, rings=False, moons=False):
+    def __init__(self, name, color, bbox, position, shift, size, t, rings=None, moons=None):
         self.box = bbox
         self.t = t
         self.rings = rings
