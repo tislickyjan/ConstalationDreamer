@@ -22,12 +22,14 @@ class Planet(SpaceObject):
         pa, pb = self.calculate_planet_bounds(planet_true_pos, factor)
         if self.rings is not None:
             # print("Adding antonov ring to planet {}".format(self.planets.index(planet)))
-            scale_factor = np.array((2, 0.67)) * factor
+            # scale_factor = np.array((2, 0.67)) * factor
             # a, b = planet.position - planet.size*scale_factor, planet.position + planet.size*scale_factor
-            a, b = self.calculate_planet_bounds(planet_true_pos, scale_factor)
-            canvas.arc((a[0], a[1], b[0], b[1]), start=180, end=360, fill=self.rings[0], width=ring_size)
+            # a, b = self.calculate_planet_bounds(planet_true_pos, scale_factor)
+            # canvas.arc((a[0], a[1], b[0], b[1]), start=180, end=360, fill=self.rings[0], width=ring_size)
+            self.rings.draw_asteroid(factor, canvas, (np.pi, np.pi*2))
             canvas.ellipse((pa[0], pa[1], pb[0], pb[1]), fill=self.color[0])
-            canvas.arc((a[0], a[1], b[0], b[1]), start=0, end=180, fill=self.rings[0], width=ring_size)
+            self.rings.draw_asteroid(factor, canvas, (0, np.pi))
+            # canvas.arc((a[0], a[1], b[0], b[1]), start=0, end=180, fill=self.rings[0], width=ring_size)
         else:
             canvas.ellipse((pa[0], pa[1], pb[0], pb[1]), fill=self.color[0])
         if self.moons is not None:

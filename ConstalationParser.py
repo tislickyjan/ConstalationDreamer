@@ -166,9 +166,9 @@ class ConstalationParser:
         name = f"{self.get_obj_name()}-{idx + 1}"
         biom = self.read_object_biom(idx)
         # jedna se o pas asteroidu, ten je po celem prstenci a tak nema smysl dal cokoliv resit, pojmenovat pasy?
-        if len(biom) == 3:
+        if biom[0] == self.bioms[0]:
             # typ biomu - asteroidy, typ asteroidu, barva
-            return {"size":None, "biom":biom, "asteroids":None, "moons":None, "name":None}
+            return {"size":None, "biom":biom[1:], "asteroids":None, "moons":None, "name":None}
         size = obj & int(0x3f)
         size = self.clamp_value(size, 10, 45)
         # barva dle typu pasu
@@ -204,7 +204,7 @@ class ConstalationParser:
         obj = self.mask_input(info[0], info[1])
         biom = ((obj & int(0x3c)) >> 2) % len(self.bioms)
         if biom == 0:
-            biom = (self.bioms[biom], self.astType[biom % len(self.astType)], self.asteroids[biom % len(self.asteroids)])
+            biom = (self.bioms[biom], self.asteroids[biom % len(self.asteroids)], self.astType[biom % len(self.astType)])
         else:
             biom = (self.bioms[biom], self.biom_environment[biom])
         return biom

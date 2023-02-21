@@ -54,9 +54,14 @@ class ConstalationDreamer:
         planet_position = np.array((size[0]*np.cos(t),size[1]*np.sin(t)))
         planet_size = np.array((obj["size"],obj["size"]))
         lu, rb = planet_position - planet_size, planet_position + planet_size
+        astpos = planet_position * self.draw_tool.get_factor() + pos
+        astsize = planet_size * np.array((2, 0.67))
+        rings = Asteroids(obj["asteroids"], astsize, astpos, obj['name'],
+                          planet_position, 100, (1,3), 0.2) if obj["asteroids"] else None
         self.information_storage.planets.append(Planet(obj["name"], obj["biom"],(lu[0], lu[1], rb[0], rb[1]),
                                                        planet_position, pos, planet_size, t,
-                                                       rings=obj["asteroids"], moons=obj["moons"]))
+                                                       rings=rings,
+                                                       moons=obj["moons"]))
 
     def asteroid_field(self, pos, size, obj):
         self.information_storage.planets.append(Asteroids(obj["biom"], size, pos, obj["name"]))

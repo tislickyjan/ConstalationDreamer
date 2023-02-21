@@ -16,6 +16,9 @@ class ConstalationDrawer:
         # self.multFac = 4 # 1 pro fullHD
         self.multiplicative_factor = 1.6 # 8 pro 8K, funguje jako zoom
 
+    def get_factor(self):
+        return self.multiplicative_factor
+
     def calculate_bounds(self, pos, size):
         return pos - np.array(size) * self.multiplicative_factor, pos + np.array(size) * self.multiplicative_factor
 
@@ -27,20 +30,21 @@ class ConstalationDrawer:
 
     def draw_star_system(self):
         self.sun_orbital_planets(self.info_storage.random_position, (np.pi, np.pi * 2),
-                                 (self.info_storage.number_of_planets - 1, -1, -1))
+                                 list(reversed(self.info_storage.planets)))
 
         for sun in self.info_storage.suns:
             sun.draw(self.multiplicative_factor, self.draw_place)
 
         self.sun_orbital_planets(self.info_storage.random_position, (0, np.pi),
-                                 (0, self.info_storage.number_of_planets, 1))
+                                 self.info_storage.planets)
 
-    def sun_orbital_planets(self, rand_trans, angle, iterator_range):
-        for i in range(iterator_range[0], iterator_range[1], iterator_range[2]):
-            if not isinstance(self.info_storage.planets[i], Asteroids):
-                position = self.image_center + rand_trans[i]
-                self.draw_sun_orbital(position, self.info_storage.return_size(i), angle)
-            if isinstance(self.info_storage.planets[i], Asteroids):
-                self.info_storage.planets[i].draw_asteroid(self.multiplicative_factor, self.draw_place, angle)
-            elif angle[0] <= self.info_storage.planets[i].t <= angle[1]:
-                self.info_storage.planets[i].draw(self.multiplicative_factor, self.draw_place)
+    def sun_orbital_planets(self, rand_trans, angle, space_objects):
+        for space_object in space_objects:
+            idx = self.info_storage.planets.index(space_object)
+            if not isinstance(space_object, Asteroids):
+                position = self.image_center + rand_trans[idx]
+                self.draw_sun_orbital(position, self.info_storage.return_size(idx), angle)
+            if isinstance(space_object, Asteroids):
+                space_object.draw_asteroid(self.multiplicative_factor, self.draw_place, angle)
+            elif angle[0] <= space_object.t <= angle[1]:
+                space_object.draw(self.multiplicative_factor, self.draw_place)
