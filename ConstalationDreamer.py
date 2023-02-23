@@ -32,9 +32,12 @@ class ConstalationDreamer:
     def dream(self):
         self.generate_space_environment()
 
+        self.draw_tool.draw_background()
+
         self.draw_tool.draw_star_system()
 
     def generate_space_environment(self):
+        self.parsed_info.read_distant_stars(self.draw_tool.image_size)
         for i in range(self.information_storage.number_of_suns):
             position = self.draw_tool.image_center + np.array((np.random.randint(low=-200, high=200),
                                                                np.random.randint(low=-20, high=20)))

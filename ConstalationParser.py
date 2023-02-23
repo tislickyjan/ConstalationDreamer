@@ -1,4 +1,7 @@
-from numpy import log as nlog
+from numpy import log as nlog, random
+from GeneralInformation import GeneralStorage
+from DistantStars import DistantStar
+
 
 class ConstalationParser:
     original_string = None
@@ -8,26 +11,27 @@ class ConstalationParser:
 
     # slovnik s maskami jednotlivych casti, cislo na druhem miste udava pocet nul zprava
     masks = {
-        "suns" : (int(0xf0000000000000000000000000000000000000000000000000),49),
-        "s0c"  : (int(0x0ffff000000000000000000000000000000000000000000000),45),
-        "s1c"  : (int(0x000ffff0000000000000000000000000000000000000000000),43),
-        "s2c"  : (int(0x000000ffff0000000000000000000000000000000000000000),40),
-        "orba" : (int(0x0000000000fff0000000000000000000000000000000000000),39),
-        "orbb" : (int(0x0000000000000fff0000000000000000000000000000000000),34),
-        "step" : (int(0x0000000000000000fff0000000000000000000000000000000),31),
-        "objs" : (int(0x000000000000000000000000f0000000000000000000000000),25),
-        "obj0" : (int(0x0000000000000000000000000ff00000000000000000000000),23),
-        "obj1" : (int(0x000000000000000000000000000ff000000000000000000000),21),
-        "obj2" : (int(0x00000000000000000000000000000ff0000000000000000000),19),
-        "obj3" : (int(0x0000000000000000000000000000000ff00000000000000000),17),
-        "obj4" : (int(0x000000000000000000000000000000000ff000000000000000),15),
-        "obj5" : (int(0x00000000000000000000000000000000000ff0000000000000),13),
-        "obj6" : (int(0x0000000000000000000000000000000000000ff00000000000),11),
-        "obj7" : (int(0x000000000000000000000000000000000000000ff000000000),9),
-        "obj8" : (int(0x00000000000000000000000000000000000000000ff0000000),7),
-        "obj9" : (int(0x0000000000000000000000000000000000000000000ff00000),5),
-        "obj10": (int(0x000000000000000000000000000000000000000000000ff000),3),
-        "obj11": (int(0x00000000000000000000000000000000000000000000000ff0),1),
+        "suns":     (int(0xf0000000000000000000000000000000000000000000000000),49),
+        "s0c":      (int(0x0ffff000000000000000000000000000000000000000000000),45),
+        "s1c":      (int(0x000ffff0000000000000000000000000000000000000000000),43),
+        "s2c":      (int(0x000000ffff0000000000000000000000000000000000000000),40),
+        "orba":     (int(0x0000000000fff0000000000000000000000000000000000000),39),
+        "orbb":     (int(0x0000000000000fff0000000000000000000000000000000000),34),
+        "step":     (int(0x0000000000000000fff0000000000000000000000000000000),31),
+        "distant_stars": (int(0x0000000000000000000fffff00000000000000000000000000),26),
+        "objs":     (int(0x000000000000000000000000f0000000000000000000000000),25),
+        "obj0":     (int(0x0000000000000000000000000ff00000000000000000000000),23),
+        "obj1":     (int(0x000000000000000000000000000ff000000000000000000000),21),
+        "obj2":     (int(0x00000000000000000000000000000ff0000000000000000000),19),
+        "obj3":     (int(0x0000000000000000000000000000000ff00000000000000000),17),
+        "obj4":     (int(0x000000000000000000000000000000000ff000000000000000),15),
+        "obj5":     (int(0x00000000000000000000000000000000000ff0000000000000),13),
+        "obj6":     (int(0x0000000000000000000000000000000000000ff00000000000),11),
+        "obj7":     (int(0x000000000000000000000000000000000000000ff000000000),9),
+        "obj8":     (int(0x00000000000000000000000000000000000000000ff0000000),7),
+        "obj9":     (int(0x0000000000000000000000000000000000000000000ff00000),5),
+        "obj10":    (int(0x000000000000000000000000000000000000000000000ff000),3),
+        "obj11":    (int(0x00000000000000000000000000000000000000000000000ff0),1),
     }
 
     bioms = [
@@ -82,7 +86,8 @@ class ConstalationParser:
         return res
 
     # source: https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
-    def kelvin_to_rgb(self, temp):
+    @staticmethod
+    def kelvin_to_rgb(temp):
         # print(temp)
         if temp > 40000:
             temp = 40000
@@ -90,7 +95,7 @@ class ConstalationParser:
             temp = 1000
         temp /= 100
         # print(temp)
-        r,g,b = 0,0,0
+        r,g,b = 0, 0, 0
         # cervena barva
         if temp <= 66:
             r = 255
@@ -130,7 +135,8 @@ class ConstalationParser:
         r, g, b = int(r), int(g), int(b)
         return r, g, b
 
-    def clamp_value(self, val, min, max):
+    @staticmethod
+    def clamp_value(val, min, max):
         if val < min:
             return min
         if val > max:
@@ -146,9 +152,9 @@ class ConstalationParser:
     # =============objekty=========================
     def read_objects_count(self):
         info = self.masks["objs"]
-        count = self.mask_input(info[0], info[1]) % self.maxCountObj
+        count = self.mask_input(*info) % self.maxCountObj
         if count == 0:
-            count = self.mask_input(info[0], info[1]) >> 1
+            count = self.mask_input(*info) >> 1
         return count
 
     def get_obj_name(self):
@@ -161,7 +167,7 @@ class ConstalationParser:
     # precte prislusnou cast a dle ni udela planetu/pas a vrati jako tuple
     def read_object_info(self, idx):
         info = self.masks[f"obj{idx}"]
-        obj = self.mask_input(info[0], info[1])
+        obj = self.mask_input(*info)
         size, biom, moons, asteroid = 0, 0, 0, 0
         name = f"{self.get_obj_name()}-{idx + 1}"
         biom = self.read_object_biom(idx)
@@ -180,7 +186,7 @@ class ConstalationParser:
 
     def read_moon(self, idx):
         info = self.masks[f"obj{idx}"]
-        obj = self.mask_input(info[0], info[1])
+        obj = self.mask_input(*info)
         moons = (obj & int(0xf0)) >> 4
         if moons >= 6 and (moons % len(self.bioms)):
             moons = (self.bioms[moons % len(self.bioms)], self.biom_environment[moons % len(self.bioms)])
@@ -190,7 +196,7 @@ class ConstalationParser:
 
     def read_rings(self, idx):
         info = self.masks[f"obj{idx}"]
-        obj = self.mask_input(info[0], info[1])
+        obj = self.mask_input(*info)
         asteroid = obj & int(0x0f)
         # bude mit dany objekt prstenec
         if asteroid >= 8:
@@ -201,7 +207,7 @@ class ConstalationParser:
 
     def read_object_biom(self, idx):
         info = self.masks[f"obj{idx}"]
-        obj = self.mask_input(info[0], info[1])
+        obj = self.mask_input(*info)
         biom = ((obj & int(0x3c)) >> 2) % len(self.bioms)
         if biom == 0:
             biom = (self.bioms[biom], self.asteroids[biom % len(self.asteroids)], self.astType[biom % len(self.astType)])
@@ -212,7 +218,7 @@ class ConstalationParser:
     # ================Slunce=======================
     def read_suns_count(self):
         info = self.masks["suns"]
-        count = self.mask_input(info[0], info[1]) % 3
+        count = self.mask_input(*info) % 3
         if count == 0:
             count = 1
         return count
@@ -220,7 +226,7 @@ class ConstalationParser:
     # precte prislusnou cast a dle ni udela barvu a velikost, kterou vrati jako tuple
     def read_sun_info(self, idx):
         info = self.masks[f"s{idx}c"]
-        sun = self.mask_input(info[0], info[1])
+        sun = self.mask_input(*info)
         #TODO osetrit jmeno slunce
         size, name = (sun & int(0x7dff) >> 4) % 270, f"{self.original_string[:4]}-{idx + 1}"
         color = self.read_sun_color(idx)
@@ -229,28 +235,42 @@ class ConstalationParser:
     def read_sun_color(self, idx):
         # if idx < 0 or idx >= 3:
         info = self.masks[f"s{idx}c"]
-        color = self.mask_input(info[0], info[1]) >> 4
+        color = self.mask_input(*info) >> 4
         r, g, b = self.kelvin_to_rgb(color)
         return r, g, b
 
+    # ==============pozadi=========================
+    def read_distant_stars(self, image_size):
+        mask = self.masks["distant_stars"]
+        info = self.mask_input(*mask)
+        # prectu pocet
+        count = info & int(0x002ff)
+        # prectu count ruznych barev
+        for i in range(count):
+            kelvin = (info ** (i + 1)) % 30000
+            # 3500 kelvina je teplota hvezdy s nejnižší povrchovou teplotou horke kavy
+            while kelvin < 2000:
+                kelvin = (kelvin ** (i + 1)) % 30000
+                if kelvin <= 10:
+                    kelvin += 20
+            # ulozim do uloziste
+            color = self.kelvin_to_rgb(kelvin)
+            size = random.randint(low=8, high=32)
+            position = (random.randint(low=0, high=image_size[0]), random.randint(low=0, high=image_size[1]))
+            # print(f"({position}), {size}, ({color})")
+            self.info_store.add_distant_star(DistantStar(position, size, color))
+
+
+
 if __name__ == "__main__":
-    par = ConstalationParser()
+    storage = GeneralStorage()
+    par = ConstalationParser(storage)
     par.init("Jan Tislický")
-    # par = ConstalationParser("0x236f97f5a5b55cc9d")
-    # mask = int(0x0fff0000000000000000000000000000000000000000000000) # numZeros = 1
-    # numZeros = par.hexLen - 46
-    # print(mask)
-    print(par.original_string)
-    print(hex(par.hexadecimal_representation))
-    # print(hex(par.hexRepre & mask))
-    # print(f"Hex zapsany vysledek maskovani a posunuty vpravo {hex((par.hexRepre & mask)>>par.hexLen*4-(numZeros*4))}")
-    # print(f"Vysledne cislo z retezu {((par.hexRepre & mask)>>par.hexLen*4-(numZeros*4))}")
-    print(f"snim o {par.read_suns_count()} hvezde")
-    print(f"kde je {par.read_objects_count()} hvezdnych objektu")
-    # print(par.ReadSunColor(0))
-    # print(f"hvezda ma velikost {par.ReadSunInfo(1)[0]} a jemnuje se {par.ReadSunInfo(1)[1]}")
-    for i in range(par.read_objects_count()):
-        print(par.read_object_info(i))
-    # print(par.ReadObjectInfo(0))
-    # print(par.ReadObjectBiom(0))
-    print(par.read_general_info())
+    # print(par.original_string)
+    # print(hex(par.hexadecimal_representation))
+    # print(f"snim o {par.read_suns_count()} hvezde")
+    # print(f"kde je {par.read_objects_count()} hvezdnych objektu")
+    # for i in range(par.read_objects_count()):
+    #     print(par.read_object_info(i))
+    # print(par.read_general_info())
+    par.read_distant_stars()

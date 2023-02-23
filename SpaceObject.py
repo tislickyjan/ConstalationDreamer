@@ -8,6 +8,7 @@ class SpaceObject(metaclass=abc.ABCMeta):
         self.size = size
         self.color = color
         self.name = name
+        self.outline = (0, 0, 0)
 
     def calculate_bounds(self, factor):
         return self.position - np.array(self.size) * factor, self.position + np.array(self.size) * factor

@@ -1,4 +1,5 @@
 class GeneralStorage:
+    distant_stars = []
     planets = []
     suns = []
     orbA = 0
@@ -20,3 +21,6 @@ class GeneralStorage:
     def return_size(self, i):
         return (self.orbA + i * self.step,
                 self.orbB + i * self.step // 3)
+
+    def add_distant_star(self, star):
+        self.distant_stars.append(star)

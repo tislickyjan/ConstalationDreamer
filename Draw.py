@@ -48,3 +48,7 @@ class ConstalationDrawer:
                 space_object.draw_asteroid(self.multiplicative_factor, self.draw_place, angle)
             elif angle[0] <= space_object.t <= angle[1]:
                 space_object.draw(self.multiplicative_factor, self.draw_place)
+
+    def draw_background(self):
+        for star in self.info_storage.distant_stars:
+            star.draw(self.multiplicative_factor, self.final_image)
