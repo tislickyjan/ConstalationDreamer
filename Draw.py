@@ -11,7 +11,7 @@ class ConstalationDrawer:
         self.image_size = np.array((1920 * 2, 1080 * 2)) # FULLHD
         # self.imageSize = np.array((7680*2,4320*2)) # 8K
         self.image_center = self.image_size / 2
-        self.final_image = Image.new("RGB", tuple(self.image_size))
+        self.final_image = Image.new("RGBA", tuple(self.image_size), (0, 0, 0))
         self.draw_place = ImageDraw.Draw(self.final_image, 'RGBA')
         # self.multFac = 4 # 1 pro fullHD
         self.multiplicative_factor = 1.6 # 8 pro 8K, funguje jako zoom

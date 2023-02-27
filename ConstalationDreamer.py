@@ -73,10 +73,6 @@ class ConstalationDreamer:
     # def add_nebula(self):
     #     ...
 
-    #TODO: Background stars
-    # def background_stars(self):
-    #     ...
-
     #TODO: Megastructures
     # def megastructures(self):
     #    ...
