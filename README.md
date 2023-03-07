@@ -15,4 +15,4 @@ Následuje nìkolik ukázek samotných soustav a následnì dosavadní stav tvorby biom
 <img src="./examples/biom_generator_1000.png" width=300>
 <img src="./examples/biom_generator_3684.png" width=300>
 <img src="./examples/biom_generator_658731.png" width=300>
-<\p>
+</p>
