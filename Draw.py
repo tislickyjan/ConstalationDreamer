@@ -29,20 +29,20 @@ class ConstalationDrawer:
                             fill=orbital_color, width=3)
 
     def draw_star_system(self):
-        self.sun_orbital_planets(self.info_storage.random_position, (np.pi, np.pi * 2),
+        self.sun_orbital_planets((np.pi, np.pi * 2),
                                  list(reversed(self.info_storage.planets)))
 
         for sun in self.info_storage.suns:
             sun.draw(self.multiplicative_factor, self.draw_place)
 
-        self.sun_orbital_planets(self.info_storage.random_position, (0, np.pi),
+        self.sun_orbital_planets((0, np.pi),
                                  self.info_storage.planets)
 
-    def sun_orbital_planets(self, rand_trans, angle, space_objects):
+    def sun_orbital_planets(self, angle, space_objects):
         for space_object in space_objects:
             idx = self.info_storage.planets.index(space_object)
             if not isinstance(space_object, Asteroids):
-                position = self.image_center + rand_trans[idx]
+                position = self.image_center + self.info_storage.random_position[idx]
                 self.draw_sun_orbital(position, self.info_storage.return_size(idx), angle)
             if isinstance(space_object, Asteroids):
                 space_object.draw_asteroid(self.multiplicative_factor, self.draw_place, angle)
@@ -52,3 +52,7 @@ class ConstalationDrawer:
     def draw_background(self):
         for star in self.info_storage.distant_stars:
             star.draw(self.multiplicative_factor, self.final_image)
+
+    def clear_whole_image(self):
+        self.final_image = Image.new("RGBA", tuple(self.image_size), (0, 0, 0))
+        self.draw_place = ImageDraw.Draw(self.final_image, 'RGBA')

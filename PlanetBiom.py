@@ -1,5 +1,6 @@
 import numpy as np
 import opensimplex
+from pathlib import Path
 from PIL import Image
 
 # TODO: optimise with NUMBA once its released
@@ -130,11 +131,14 @@ class PlanetBiotops:
 
 
 if __name__ == "__main__":
-    biom = PlanetBiotops(99830217, 2, [np.array((5, 142, 217)), np.array((242, 208, 169)), np.array((82, 151, 53)),
-                                     np.array((5, 59, 6)), np.array((72, 74, 71))])
-    # 658731
-    # biom.generate_moisture()
-    # biom.generate_terrain()
-    # biom.filter_textures()
-    biom.generate_environment()
-    biom.final_image.show()
+    for i in [658731, 1, 1000, 3684]:
+        biom = PlanetBiotops(i, 2, [np.array((5, 142, 217)), np.array((242, 208, 169)), np.array((82, 151, 53)),
+                                         np.array((5, 59, 6)), np.array((72, 74, 71))])
+        # 658731
+        # biom.generate_moisture()
+        # biom.generate_terrain()
+        # biom.filter_textures()
+        biom.generate_environment()
+        # biom.final_image.show()
+        biom.final_image.save(Path(f"./examples/biom_generator_{i}.png"))
+        print(f"biom number {i} saved")

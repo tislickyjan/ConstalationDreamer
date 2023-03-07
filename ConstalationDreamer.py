@@ -6,6 +6,7 @@ import GeneralInformation as genStorage
 from Sun import Sun
 from Asteroids import Asteroids
 from Planet import Planet
+from pathlib import Path
 
 
 # vypocítava celou vyslednou soustavu na zaklade parametru, pripadne upravuje vysledek
@@ -18,7 +19,6 @@ class ConstalationDreamer:
         self.draw_tool = Draw.ConstalationDrawer(self.information_storage)
         self.parsed_info = conPar.ConstalationParser(self.information_storage)
         # tato cast musi jit pozdeji jinam, hlavne kdyz budu chtit vystavit na web jako jednu z komponent
-        self.dream_about("Jan Tislický")
 
     def dream_about(self, name):
         self.parsed_info.init(name)
@@ -29,7 +29,9 @@ class ConstalationDreamer:
         self.information_storage.set_rand_pos(np.random.randint(low=-15, high=15,
                                                                 size=self.information_storage.number_of_planets))
 
-    def dream(self):
+    def dream(self, text):
+        self.dream_about(text)
+
         self.generate_space_environment()
 
         self.draw_tool.draw_background()
@@ -86,10 +88,18 @@ class ConstalationDreamer:
 
 if __name__ == "__main__":
     cdreamer = ConstalationDreamer()
-    cdreamer.dream()
-    cdreamer.final_image = cdreamer.draw_tool.final_image.resize(cdreamer.draw_tool.image_size // 2,
-                                                                 resample=Image.LANCZOS)
-    cdreamer.final_image.show()
+    for i in ["Jan Tislický"]:
+        print(f"dreaming about {i}")
+        cdreamer.dream(i)
+        cdreamer.final_image = cdreamer.draw_tool.final_image.resize(cdreamer.draw_tool.image_size // 2,
+                                                                     resample=Image.LANCZOS)
+        # cdreamer.final_image.show()
+        cdreamer.final_image.save(Path(f"./examples/star_system_{'_'.join(i.split(' '))}.png"))
+        print(f"finished {i}")
+        print("-"*50)
+        print()
+        cdreamer.information_storage.clear_all_info()
+        cdreamer.draw_tool.clear_whole_image()
 
     """
         rotovani planet
