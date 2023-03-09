@@ -20,17 +20,8 @@ class ConstalationDreamer:
         self.parsed_info = conPar.ConstalationParser(self.information_storage)
         # tato cast musi jit pozdeji jinam, hlavne kdyz budu chtit vystavit na web jako jednu z komponent
 
-    def dream_about(self, name):
-        self.parsed_info.init(name)
-        self.information_storage.set_general_information(self.parsed_info.read_general_info())
-        self.information_storage.set_number_of_objects(self.parsed_info.read_suns_count(),
-                                                       self.parsed_info.read_objects_count())
-        # random displace for palnets and orbitals, asteroids...
-        self.information_storage.set_rand_pos(np.random.randint(low=-15, high=15,
-                                                                size=self.information_storage.number_of_planets))
-
     def dream(self, text):
-        self.dream_about(text)
+        self.parsed_info.init(text)
 
         self.generate_space_environment()
 
@@ -93,8 +84,8 @@ if __name__ == "__main__":
         cdreamer.dream(i)
         cdreamer.final_image = cdreamer.draw_tool.final_image.resize(cdreamer.draw_tool.image_size // 2,
                                                                      resample=Image.LANCZOS)
-        # cdreamer.final_image.show()
-        cdreamer.final_image.save(Path(f"./examples/star_system_{'_'.join(i.split(' '))}.png"))
+        cdreamer.final_image.show()
+        # cdreamer.final_image.save(Path(f"./examples/star_system_{'_'.join(i.split(' '))}.png"))
         print(f"finished {i}")
         print("-"*50)
         print()

@@ -37,7 +37,7 @@ class DistantStar(SpaceObject):
         # stred
         self.draw_ellipse(factor, local_canvas)
         # nohodne otoceni a zmenseni na požadovanou velikost
-        auxiliary_image = auxiliary_image.rotate(np.random.randint(low=0,high=89), expand=False)
+        auxiliary_image = auxiliary_image.rotate(np.random.randint(low=0, high=89), expand=False)
         auxiliary_image = auxiliary_image.resize((self.size, self.size), resample=Image.LANCZOS)
         # vlozit do noveho obr
         canvas.alpha_composite(auxiliary_image, tuple(self.position))

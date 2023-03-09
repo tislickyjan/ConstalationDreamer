@@ -1,4 +1,4 @@
-from numpy import log as nlog, random
+from numpy import log as nlog, random, array as nparray
 from GeneralInformation import GeneralStorage
 from DistantStars import DistantStar
 
@@ -11,27 +11,42 @@ class ConstalationParser:
 
     # slovnik s maskami jednotlivych casti, cislo na druhem miste udava pocet nul zprava
     masks = {
-        "suns":     (int(0xf0000000000000000000000000000000000000000000000000),49),
-        "s0c":      (int(0x0ffff000000000000000000000000000000000000000000000),45),
-        "s1c":      (int(0x000ffff0000000000000000000000000000000000000000000),43),
-        "s2c":      (int(0x000000ffff0000000000000000000000000000000000000000),40),
-        "orba":     (int(0x0000000000fff0000000000000000000000000000000000000),39),
-        "orbb":     (int(0x0000000000000fff0000000000000000000000000000000000),34),
-        "step":     (int(0x0000000000000000fff0000000000000000000000000000000),31),
-        "distant_stars": (int(0x0000000000000000000fffff00000000000000000000000000),26),
-        "objs":     (int(0x000000000000000000000000f0000000000000000000000000),25),
-        "obj0":     (int(0x0000000000000000000000000ff00000000000000000000000),23),
-        "obj1":     (int(0x000000000000000000000000000ff000000000000000000000),21),
-        "obj2":     (int(0x00000000000000000000000000000ff0000000000000000000),19),
-        "obj3":     (int(0x0000000000000000000000000000000ff00000000000000000),17),
-        "obj4":     (int(0x000000000000000000000000000000000ff000000000000000),15),
-        "obj5":     (int(0x00000000000000000000000000000000000ff0000000000000),13),
-        "obj6":     (int(0x0000000000000000000000000000000000000ff00000000000),11),
-        "obj7":     (int(0x000000000000000000000000000000000000000ff000000000),9),
-        "obj8":     (int(0x00000000000000000000000000000000000000000ff0000000),7),
-        "obj9":     (int(0x0000000000000000000000000000000000000000000ff00000),5),
-        "obj10":    (int(0x000000000000000000000000000000000000000000000ff000),3),
-        "obj11":    (int(0x00000000000000000000000000000000000000000000000ff0),1),
+        "suns":     (int(0xf),49),
+        "s0c":      (int(0xffff),45),
+        "s1c":      (int(0xffff),43),
+        "s2c":      (int(0xffff),40),
+        "orba":     (int(0xfff),39),
+        "orbb":     (int(0xfff),34),
+        "step":     (int(0xfff),31),
+        "distant_stars": (int(0xfffff),26),
+        "objs":     (int(0xf),25),
+        "obj0":     (int(0xff),23),
+        "obj1":     (int(0xff),21),
+        "obj2":     (int(0xff),19),
+        "obj3":     (int(0xff),17),
+        "obj4":     (int(0xff),15),
+        "obj5":     (int(0xff),13),
+        "obj6":     (int(0xff),11),
+        "obj7":     (int(0xff),9),
+        "obj8":     (int(0xff),7),
+        "obj9":     (int(0xff),5),
+        "obj10":    (int(0xff),3),
+        "obj11":    (int(0xff),1),
+    }
+
+    color_masks = {
+        "obj0":     [19, 17, 11, 27],
+        "obj1":     [13, 25, 2, 38],
+        "obj2":     [43, 31, 28, 12],
+        "obj3":     [36, 0, 24, 42],
+        "obj4":     [9, 35, 34, 37],
+        "obj5":     [8, 16, 32, 26],
+        "obj6":     [6, 5, 14, 29],
+        "obj7":     [32, 22, 18, 3],
+        "obj8":     [20, 10, 30, 40],
+        "obj9":     [15, 23, 1, 4],
+        "obj10":    [38, 33, 21, 7],
+        "obj11":    [39, 41, 19, 8],
     }
 
     bioms = [
@@ -79,10 +94,15 @@ class ConstalationParser:
             self.hexadecimal_representation = int(str(hex(self.hexadecimal_representation))[:52], 16)
             self.hexadecimal_length = len(hex(self.hexadecimal_representation)) - 2
         # print(int(str(hex(self.hexRepre))[:50],16))
+        # nastav sdilene informace
+        self.info_store.set_general_information(self.read_general_info())
+        self.info_store.set_number_of_objects(self.read_suns_count(), self.read_objects_count())
+        # random displace for planets and orbitals, asteroids...
+        self.info_store.set_rand_pos(random.randint(low=-15, high=15, size=self.info_store.number_of_planets))
 
     def mask_input(self, mask, offset):
         shift = self.hexadecimal_length - offset
-        res = (self.hexadecimal_representation & mask) >> ((self.hexadecimal_length - shift) * 4)
+        res = (self.hexadecimal_representation >> ((self.hexadecimal_length - shift) * 4)) & mask
         return res
 
     # source: https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
@@ -164,10 +184,12 @@ class ConstalationParser:
         else:
             return tmp[0][4:8].title()
 
+    def get_object(self, idx):
+        return self.mask_input(*self.masks[f"obj{idx}"])
+
     # precte prislusnou cast a dle ni udela planetu/pas a vrati jako tuple
     def read_object_info(self, idx):
-        info = self.masks[f"obj{idx}"]
-        obj = self.mask_input(*info)
+        obj = self.get_object(idx)
         size, biom, moons, asteroid = 0, 0, 0, 0
         name = f"{self.get_obj_name()}-{idx + 1}"
         biom = self.read_object_biom(idx)
@@ -185,8 +207,7 @@ class ConstalationParser:
         return {"size":size, "biom":biom, "asteroids":asteroid, "moons":moons, "name":name}
 
     def read_moon(self, idx):
-        info = self.masks[f"obj{idx}"]
-        obj = self.mask_input(*info)
+        obj = self.get_object(idx)
         moons = (obj & int(0xf0)) >> 4
         if moons >= 6 and (moons % len(self.bioms)):
             moons = (self.bioms[moons % len(self.bioms)], self.biom_environment[moons % len(self.bioms)])
@@ -195,8 +216,7 @@ class ConstalationParser:
         return moons
 
     def read_rings(self, idx):
-        info = self.masks[f"obj{idx}"]
-        obj = self.mask_input(*info)
+        obj = self.get_object(idx)
         asteroid = obj & int(0x0f)
         # bude mit dany objekt prstenec
         if asteroid >= 8:
@@ -206,8 +226,7 @@ class ConstalationParser:
         return asteroid
 
     def read_object_biom(self, idx):
-        info = self.masks[f"obj{idx}"]
-        obj = self.mask_input(*info)
+        obj = self.get_object(idx)
         biom = ((obj & int(0x3c)) >> 2) % len(self.bioms)
         if biom == 0:
             biom = (self.bioms[biom], self.asteroids[biom % len(self.asteroids)], self.astType[biom % len(self.astType)])
@@ -260,6 +279,16 @@ class ConstalationParser:
             # print(f"({position}), {size}, ({color})")
             self.info_store.add_distant_star(DistantStar(position, size, color))
 
+    # ===========biomy - barvy=======================
+    def return_object_colors(self, idx):
+        shifts = self.color_masks[f"obj{idx}"]
+        resulting_colors = []
+        for i in shifts:
+            color = self.mask_input(0xffffff, i)
+            R, G, B = color & 0xff, (color >> 4) & 0xff, (color >> 8) & 0xff
+            resulting_colors.append(nparray((R, G, B)))
+        resulting_colors.extend([nparray((72, 74, 71)), nparray((250, 250, 250))])
+        return resulting_colors
 
 
 if __name__ == "__main__":
@@ -273,4 +302,6 @@ if __name__ == "__main__":
     # for i in range(par.read_objects_count()):
     #     print(par.read_object_info(i))
     # print(par.read_general_info())
-    par.read_distant_stars()
+    # par.read_distant_stars()
+    # int(0x0000000000000000000000000000000000000000000ff00000),5
+    print(par.return_object_colors(0))

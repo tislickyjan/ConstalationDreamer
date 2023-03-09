@@ -2,6 +2,9 @@ import numpy as np
 import opensimplex
 from pathlib import Path
 from PIL import Image
+from ConstalationParser import ConstalationParser
+from GeneralInformation import GeneralStorage
+
 
 # TODO: optimise with NUMBA once its released
 class PlanetBiotops:
@@ -62,61 +65,63 @@ class PlanetBiotops:
 
     def filter_textures(self):
         self.terrain *= self.filter
+        self.terrain = np.uint8(np.round(self.terrain * 255))
         self.moisture *= self.filter
+        self.moisture = np.uint8(np.round(self.moisture * 255))
 
         # img = Image.fromarray(np.uint8(self.terrain * 255))
         # img.show()
         # img = Image.fromarray(np.uint8(self.moisture * 255))
         # img.show()
 
-    def fill_final_image(self):
+    def fill_final_image(self, modifier):
         color = np.array((0, 0, 0))
         for y in range(self.terrain.shape[0]):
             for x in range(self.terrain.shape[0]):
-                if self.terrain[y, x] < 0.055:  # really deep OCEAN
+                if self.terrain[y, x] < (14 + modifier):  # really deep OCEAN
                     color = self.colors[0] * 0.25
-                elif self.terrain[y, x] < 0.075:  # deep OCEAN
+                elif self.terrain[y, x] < (19 + modifier):  # deep OCEAN
                     color = self.colors[0] * 0.5
-                elif self.terrain[y, x] < 0.08:  # ocean
+                elif self.terrain[y, x] < (20 + modifier):  # ocean
                     color = self.colors[0]
-                elif self.terrain[y, x] < 0.081:  # BEACH
+                elif self.terrain[y, x] < (21 + modifier):  # BEACH
                     color = self.colors[1] * 0.9
 
                 # hory
-                elif self.terrain[y, x] > 0.17:
-                    if self.moisture[y, x] < 0.38:  # SCORCHED
+                elif self.terrain[y, x] > (43 + modifier):
+                    if self.moisture[y, x] < 97:  # SCORCHED
                         color = self.colors[4] * 0.8
-                    elif self.moisture[y, x] < 0.53:  # BARE
+                    elif self.moisture[y, x] < 135:  # BARE
                         color = np.clip(self.colors[4] * 1.4, 0, 255)
-                    elif self.moisture[y, x] < 0.6:  # TUNDRA
-                        color = np.array(np.uint8((235, 235, 235)))
+                    elif self.moisture[y, x] < 153:  # TUNDRA
+                        color = self.colors[5] * 0.9
                     else:  # snow
-                        color = np.array(np.uint8((250, 250, 250)))
+                        color = self.colors[5]
 
-                elif self.terrain[y, x] > 0.14:
-                    if self.moisture[y, x] < 0.33:  # TEMPERATE_DESERT
+                elif self.terrain[y, x] > (36 + modifier):
+                    if self.moisture[y, x] < 84:  # TEMPERATE_DESERT
                         color = self.colors[2] * 0.8
-                    elif self.moisture[y, x] < 0.66:  # SHRUBLAND
+                    elif self.moisture[y, x] < 168:  # SHRUBLAND
                         color = np.clip(self.colors[3] * 1.25, 0, 255)
                     else:   # TAIGA
                         color = np.clip(self.colors[3] * 1.68, 0, 255)
 
-                elif self.terrain[y, x] > 0.1:
-                    if self.moisture[y, x] < 0.096:  # TEMPERATE_DESERT
+                elif self.terrain[y, x] > (25 + modifier):
+                    if self.moisture[y, x] < 24:  # TEMPERATE_DESERT
                         color = self.colors[2] * 0.8
-                    elif self.moisture[y, x] < 0.316:  # GRASSLAND
+                    elif self.moisture[y, x] < 80:  # GRASSLAND
                         color = np.clip(self.colors[2] * 1.2, 0, 255)
-                    elif self.moisture[y, x] < 0.83:  # TEMPERATE_DECIDUOUS_FOREST
+                    elif self.moisture[y, x] < 212:  # TEMPERATE_DECIDUOUS_FOREST
                         color = self.colors[2] * 0.628
                     else:  # TEMPERATE_RAIN_FOREST
                         color = self.colors[3]
 
                 else:
-                    if self.moisture[y, x] < 0.24:  # SUBTROPICAL_DESERT
+                    if self.moisture[y, x] < 61:  # SUBTROPICAL_DESERT
                         color = np.clip(self.colors[1] * 1.13, 0, 255)
-                    elif self.moisture[y, x] < 0.38:  # GRASSLAND
+                    elif self.moisture[y, x] < 97:  # GRASSLAND
                         color = np.clip(self.colors[2] * 1.2, 0, 255)
-                    elif self.moisture[y, x] < 0.69:  # TROPICAL_SEASONAL_FOREST
+                    elif self.moisture[y, x] < 175:  # TROPICAL_SEASONAL_FOREST
                         color = self.colors[2] * 0.84
                     else:  # TROPICAL_RAIN_FOREST
                         color = self.colors[2] * 0.823
@@ -127,18 +132,24 @@ class PlanetBiotops:
         self.generate_terrain()
         self.generate_moisture()
         self.filter_textures()
-        self.fill_final_image()
+        value = parser.get_object(2) % 23
+        elevation_modifier = value if self.biom_name == "ocean" else value // 2 if self.biom_name == "terran" else -value
+        self.fill_final_image(elevation_modifier)
 
 
 if __name__ == "__main__":
-    for i in [658731, 1, 1000, 3684]:
-        biom = PlanetBiotops(i, 2, [np.array((5, 142, 217)), np.array((242, 208, 169)), np.array((82, 151, 53)),
-                                         np.array((5, 59, 6)), np.array((72, 74, 71))])
+    info = GeneralStorage()
+    parser = ConstalationParser(info)
+    # 658731, 1, 1000, 3684
+    for i in ["Jan Tislický"]:
+        parser.init(i)
+        biom = PlanetBiotops(parser.get_object(2), "terran", parser.return_object_colors(2))
         # 658731
         # biom.generate_moisture()
         # biom.generate_terrain()
         # biom.filter_textures()
         biom.generate_environment()
-        # biom.final_image.show()
-        biom.final_image.save(Path(f"./examples/biom_generator_{i}.png"))
-        print(f"biom number {i} saved")
+        biom.final_image.show()
+        # biom.final_image.save(Path(f"./examples/biom_generator_{i}.png"))
+        # print(f"biom number {i} saved")
+        #[np.array((5, 142, 217)), np.array((242, 208, 169)),np.array((82, 151, 53)), np.array((5, 59, 6)), np.array((72, 74, 71))]

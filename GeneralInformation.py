@@ -1,3 +1,5 @@
+from numpy import array as nparr
+
 class GeneralStorage:
     distant_stars = []
     planets = []
@@ -8,6 +10,12 @@ class GeneralStorage:
     number_of_planets = 10
     number_of_suns = 1
     random_position = None
+    magma_palette = [nparr((255, 37, 0)), nparr((255, 102, 0)), nparr((242, 242, 23)),
+                     nparr((234, 92, 15)), nparr((229, 101, 32)), nparr((38, 38, 38))]
+    barren_palette = [nparr((88, 88, 88)), nparr((96, 96, 96)), nparr((111, 111, 111)),
+                      nparr((128, 128, 128)), nparr((153, 153, 153)),nparr((204, 204, 204))]
+    desert_palette = [nparr((5, 142, 217)), nparr((220, 164, 68)), nparr((231, 169, 103)),
+                      nparr((120, 48, 9)), nparr((90, 17, 7)),nparr((47, 33, 38))]
 
     def set_general_information(self, info):
         self.orbA, self.orbB, self.step = info
