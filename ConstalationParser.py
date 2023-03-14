@@ -1,4 +1,4 @@
-from numpy import log as nlog, random, array as nparray
+from numpy import log as nlog, random, array as nparray, clip
 from GeneralInformation import GeneralStorage
 from DistantStars import DistantStar
 
@@ -235,6 +235,9 @@ class ConstalationParser:
         return biom
 
     # ================Slunce=======================
+    def get_sun(self, idx):
+        return self.mask_input(*self.masks[f"s{idx}c"])
+
     def read_suns_count(self):
         info = self.masks["suns"]
         count = self.mask_input(*info) % 3
@@ -244,8 +247,7 @@ class ConstalationParser:
 
     # precte prislusnou cast a dle ni udela barvu a velikost, kterou vrati jako tuple
     def read_sun_info(self, idx):
-        info = self.masks[f"s{idx}c"]
-        sun = self.mask_input(*info)
+        sun = self.get_sun(idx)
         #TODO osetrit jmeno slunce
         size, name = (sun & int(0x7dff) >> 4) % 270, f"{self.original_string[:4]}-{idx + 1}"
         color = self.read_sun_color(idx)
@@ -253,10 +255,11 @@ class ConstalationParser:
 
     def read_sun_color(self, idx):
         # if idx < 0 or idx >= 3:
-        info = self.masks[f"s{idx}c"]
-        color = self.mask_input(*info) >> 4
-        r, g, b = self.kelvin_to_rgb(color)
-        return r, g, b
+        color = self.get_sun(idx) >> 4
+        base_color = nparray(self.kelvin_to_rgb(color))
+        color_range = [base_color * 2.983, base_color * 0.95, base_color * 1.15,
+                       base_color * 1.87, base_color * 0.75, base_color]
+        return color_range
 
     # ==============pozadi=========================
     def read_distant_stars(self, image_size):
@@ -295,13 +298,4 @@ if __name__ == "__main__":
     storage = GeneralStorage()
     par = ConstalationParser(storage)
     par.init("Jan Tislický")
-    # print(par.original_string)
-    # print(hex(par.hexadecimal_representation))
-    # print(f"snim o {par.read_suns_count()} hvezde")
-    # print(f"kde je {par.read_objects_count()} hvezdnych objektu")
-    # for i in range(par.read_objects_count()):
-    #     print(par.read_object_info(i))
-    # print(par.read_general_info())
-    # par.read_distant_stars()
-    # int(0x0000000000000000000000000000000000000000000ff00000),5
     print(par.return_object_colors(0))
