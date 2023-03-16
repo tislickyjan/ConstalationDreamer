@@ -33,7 +33,7 @@ class ConstalationDrawer:
                                  list(reversed(self.info_storage.planets)))
 
         for sun in self.info_storage.suns:
-            sun.draw(self.multiplicative_factor, self.draw_place)
+            sun.draw(self.multiplicative_factor, self.final_image)
 
         self.sun_orbital_planets((0, np.pi),
                                  self.info_storage.planets)

@@ -5,15 +5,15 @@ from PIL import Image, ImageDraw
 
 class DistantStar(SpaceObject):
 
-    def __init__(self, position, size, color):
-        super().__init__(position, size, color)
+    def __init__(self, position, size, surface):
+        super().__init__(position, size, surface)
 
     def calculate_bounds(self, factor):
         return (512, 512) - np.array(self.size) * factor, (512, 512) + np.array(self.size) * factor
 
     def draw_ellipse(self, factor, target_draw, opacity=255):
         a, b = self.calculate_bounds(factor)
-        target_draw.ellipse((a[0], a[1], b[0], b[1]), (*self.color, opacity), outline=(0, 0, 0))
+        target_draw.ellipse((a[0], a[1], b[0], b[1]), (*self.surface, opacity), outline=(0, 0, 0))
 
     def draw(self, factor, canvas):
         # zalozit novy obrazek, je treba urcit rozumnou velikost

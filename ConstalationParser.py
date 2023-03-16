@@ -1,6 +1,7 @@
 from numpy import log as nlog, random, array as nparray, clip
 from GeneralInformation import GeneralStorage
 from DistantStars import DistantStar
+from PlanetBiom import ObjectEnvironment
 
 
 class ConstalationParser:
@@ -15,8 +16,8 @@ class ConstalationParser:
         "s0c":      (int(0xffff),45),
         "s1c":      (int(0xffff),43),
         "s2c":      (int(0xffff),40),
-        "orba":     (int(0xfff),39),
-        "orbb":     (int(0xfff),34),
+        "orba":     (int(0x4ff),37),
+        "orbb":     (int(0x4ff),34),
         "step":     (int(0xfff),31),
         "distant_stars": (int(0xfffff),26),
         "objs":     (int(0xf),25),
@@ -100,9 +101,8 @@ class ConstalationParser:
         # random displace for planets and orbitals, asteroids...
         self.info_store.set_rand_pos(random.randint(low=-15, high=15, size=self.info_store.number_of_planets))
 
-    def mask_input(self, mask, offset):
-        shift = self.hexadecimal_length - offset
-        res = (self.hexadecimal_representation >> ((self.hexadecimal_length - shift) * 4)) & mask
+    def mask_input(self, numerical_mask, offset):
+        res = (self.hexadecimal_representation >> (offset * 4)) & numerical_mask
         return res
 
     # source: https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
@@ -155,19 +155,11 @@ class ConstalationParser:
         r, g, b = int(r), int(g), int(b)
         return r, g, b
 
-    @staticmethod
-    def clamp_value(val, min, max):
-        if val < min:
-            return min
-        if val > max:
-            return max
-        return val
-
     def read_general_info(self):
-        orbA = self.mask_input(self.masks["orba"][0], self.masks["orba"][1])
-        orbB = self.mask_input(self.masks["orbb"][0], self.masks["orbb"][1])
-        step = self.mask_input(self.masks["step"][0], self.masks["step"][1])
-        return self.clamp_value(orbA, 500, 800), self.clamp_value(orbB, 90, 150), self.clamp_value(step, 110, 140)
+        orbA = self.mask_input(*self.masks["orba"])
+        orbB = self.mask_input(*self.masks["orbb"])
+        step = self.mask_input(*self.masks["step"])
+        return clip(orbA, 500, 800), clip(orbB, 90, 150), clip(step, 110, 140)
 
     # =============objekty=========================
     def read_objects_count(self):
@@ -198,13 +190,13 @@ class ConstalationParser:
             # typ biomu - asteroidy, typ asteroidu, barva
             return {"size":None, "biom":biom[1:], "asteroids":None, "moons":None, "name":None}
         size = obj & int(0x3f)
-        size = self.clamp_value(size, 10, 45)
+        size = clip(size, 10, 45)
         # barva dle typu pasu
         asteroid = self.read_rings(idx)
         # provizorne barva bude z definovanych pro planety
         moons = self.read_moon(idx)
         # vracim velikost planety, jeji barvu (biom), zda ma pas asteroidu a jake barvy, jakou barvu maji mesice / proste planety
-        return {"size":size, "biom":biom, "asteroids":asteroid, "moons":moons, "name":name}
+        return {"size": size, "biom": biom, "asteroids": asteroid, "moons": moons, "name": name}
 
     def read_moon(self, idx):
         obj = self.get_object(idx)
@@ -250,10 +242,12 @@ class ConstalationParser:
         sun = self.get_sun(idx)
         #TODO osetrit jmeno slunce
         size, name = (sun & int(0x7dff) >> 4) % 270, f"{self.original_string[:4]}-{idx + 1}"
-        color = self.read_sun_color(idx)
-        return {"size": size, "color": color, "name": name}
+        color = self.read_sun_colors(idx)
+        surface = ObjectEnvironment(sun, "", self.read_sun_colors(idx))
+        surface.set_noise_exponents(nparray((0, 0, 0.03125, 0.015625)))
+        return {"size": size, "surface": surface, "name": name}
 
-    def read_sun_color(self, idx):
+    def read_sun_colors(self, idx):
         # if idx < 0 or idx >= 3:
         color = self.get_sun(idx) >> 4
         base_color = nparray(self.kelvin_to_rgb(color))
@@ -298,4 +292,22 @@ if __name__ == "__main__":
     storage = GeneralStorage()
     par = ConstalationParser(storage)
     par.init("Jan Tislický")
-    print(par.return_object_colors(0))
+    dict_of_old = { "orba":     (int(0x0000000000fff0000000000000000000000000000000000000), 37),
+                    "orbb":     (int(0x0000000000000fff0000000000000000000000000000000000), 34),
+                    "step":     (int(0x0000000000000000fff0000000000000000000000000000000), 31), }
+    print("-"*40)
+    for item in ["orba"]:#, "orbb", "step"]:
+        mask, shift = par.masks[item]
+        mask_old, shift_old = dict_of_old[item]
+        print(hex((par.hexadecimal_representation)))
+        print("0"*10 + hex(mask_old))
+        print(hex((par.hexadecimal_representation & mask_old)))
+        print(hex((par.hexadecimal_representation & mask_old) >> (shift_old * 4)))
+        # print((par.hexadecimal_representation & mask_old) >> (shift_old * 4))
+        print("+"*40)
+        print(hex(par.hexadecimal_representation))
+        print(hex(par.hexadecimal_representation >> (shift * 4)))
+        print(hex((par.hexadecimal_representation >> (shift * 4)) & 0xfff))
+        print((par.hexadecimal_representation >> (shift * 4)) & mask)
+        # print(par.mask_input(mask, shift))
+        print("-"*40)

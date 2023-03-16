@@ -31,5 +31,5 @@ class Asteroids(SpaceObject):
                 asteroid_position = np.array((self.position[0] * np.cos(t), self.position[1] * np.sin(t))) * asteroid_factor + self.size
                 lu, rb = self.calculate_asteroid_bounds(asteroid_position, asteroid_size, factor)
                 canvas.ellipse((lu[0], lu[1], rb[0], rb[1]),
-                               fill=tuple(self.color - np.array((i * ccorr, i * ccorr, i * ccorr))))
+                               fill=tuple(self.surface - np.array((i * ccorr, i * ccorr, i * ccorr))))
 

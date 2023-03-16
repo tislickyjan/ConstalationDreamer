@@ -1,9 +1,9 @@
 import numpy as np
 import opensimplex
-from pathlib import Path
 from PIL import Image
-from ConstalationParser import ConstalationParser
-from GeneralInformation import GeneralStorage
+# from pathlib import Path
+# from ConstalationParser import ConstalationParser
+# from GeneralInformation import GeneralStorage
 
 
 # TODO: optimise with NUMBA once its released
@@ -120,7 +120,8 @@ class ObjectEnvironment:
                         color = self.colors[2] * 0.84
                     else:  # TROPICAL_RAIN_FOREST
                         color = self.colors[2] * 0.823
-                self.final_image.putpixel((x, y), (*np.uint8(np.round(np.clip(color, 0, 255))), self.mask[y, x] * 255))
+                self.final_image.putpixel((x, y), (*np.uint8(np.round(np.clip(color, 0, 255))),
+                                                   np.uint8(np.round(self.mask[y, x] * 255))))
 
     # seed a name v hlavicce?
     def generate_environment(self):
@@ -133,16 +134,17 @@ class ObjectEnvironment:
 
 
 if __name__ == "__main__":
-    info = GeneralStorage()
-    parser = ConstalationParser(info)
+    ...
+    # info = GeneralStorage()
+    # parser = ConstalationParser(info)
     # 658731, 1, 1000, 3684
-    for i in ["Jan Tislický"]:
-        parser.init(i)
+    # for i in ["Jan Tislický"]:
+    #     parser.init(i)
         # biom = ObjectEnvironment(parser.get_object(2), "terran", parser.return_object_colors(2))
-        biom = ObjectEnvironment(parser.get_sun(1), "", parser.read_sun_color(1))
-        biom.set_noise_exponents(np.array((0, 0, 0.03125, 0.015625)))
-        biom.generate_environment()
-        biom.final_image.show()
+        # biom = ObjectEnvironment(parser.get_sun(1), "", parser.read_sun_colors(1))
+        # biom.set_noise_exponents(np.array((0, 0, 0.03125, 0.015625)))
+        # biom.generate_environment()
+        # biom.final_image.show()
         # biom.final_image.save(Path(f"./examples/biom_generator_{i}.png"))
         # print(f"biom number {i} saved")
         #[np.array((5, 142, 217)), np.array((242, 208, 169)),np.array((82, 151, 53)), np.array((5, 59, 6)), np.array((72, 74, 71))]

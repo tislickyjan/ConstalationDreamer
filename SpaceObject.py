@@ -3,10 +3,10 @@ import numpy as np
 
 
 class SpaceObject(metaclass=abc.ABCMeta):
-    def __init__(self, position, size, color, name=""):
+    def __init__(self, position, size, surface, name=""):
         self.position = position
         self.size = size
-        self.color = color
+        self.surface = surface
         self.name = name
         self.outline = (0, 0, 0)
 

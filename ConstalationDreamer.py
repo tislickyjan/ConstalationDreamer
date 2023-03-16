@@ -35,7 +35,7 @@ class ConstalationDreamer:
             position = self.draw_tool.image_center + np.array((np.random.randint(low=-200, high=200),
                                                                np.random.randint(low=-20, high=20)))
             local_sun = self.parsed_info.read_sun_info(i)
-            self.information_storage.suns.append(Sun(position, local_sun["size"], local_sun["color"], local_sun["name"]))
+            self.information_storage.suns.append(Sun(position, local_sun["size"], local_sun["surface"], local_sun["name"]))
         for i in range(self.information_storage.number_of_planets):
             position = self.draw_tool.image_center + self.information_storage.random_position[i]
             size = self.information_storage.return_size(i)
@@ -85,7 +85,7 @@ if __name__ == "__main__":
         cdreamer.final_image = cdreamer.draw_tool.final_image.resize(cdreamer.draw_tool.image_size // 2,
                                                                      resample=Image.LANCZOS)
         cdreamer.final_image.show()
-        # cdreamer.final_image.save(Path(f"./examples/star_system_{'_'.join(i.split(' '))}.png"))
+        # cdreamer.final_image.save(Path(f"./examples/star_system_{'_'.join(i.split(' '))}_sun_surface.png"))
         print(f"finished {i}")
         print("-"*50)
         print()
