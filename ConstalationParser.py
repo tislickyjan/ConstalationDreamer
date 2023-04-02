@@ -196,7 +196,7 @@ class ConstalationParser:
         # provizorne barva bude z definovanych pro planety
         moons = self.read_moon(idx)
         # vracim velikost planety, jeji barvu (biom), zda ma pas asteroidu a jake barvy, jakou barvu maji mesice / proste planety
-        return {"size": size, "biom": biom, "asteroids": asteroid, "moons": moons, "name": name}
+        return {"size": size, "biom": ObjectEnvironment(obj, biom[1], self.return_object_colors(idx, biom[1])), "asteroids": asteroid, "moons": moons, "name": name}
 
     def read_moon(self, idx):
         obj = self.get_object(idx)
@@ -277,14 +277,21 @@ class ConstalationParser:
             self.info_store.add_distant_star(DistantStar(position, size, color))
 
     # ===========biomy - barvy=======================
-    def return_object_colors(self, idx):
+    def return_object_colors(self, idx, biom_name):
         shifts = self.color_masks[f"obj{idx}"]
         resulting_colors = []
-        for i in shifts:
-            color = self.mask_input(0xffffff, i)
-            R, G, B = color & 0xff, (color >> 4) & 0xff, (color >> 8) & 0xff
-            resulting_colors.append(nparray((R, G, B)))
-        resulting_colors.extend([nparray((72, 74, 71)), nparray((250, 250, 250))])
+        if biom_name == "lava":
+            resulting_colors.extend(self.info_store.magma_palette)
+        elif biom_name == "barren":
+            resulting_colors.extend(self.info_store.barren_palette)
+        elif biom_name == "desert":
+            resulting_colors.extend(self.info_store.desert_palette)
+        else:
+            for i in shifts:
+                color = self.mask_input(0xffffff, i)
+                R, G, B = color & 0xff, (color >> 4) & 0xff, (color >> 8) & 0xff
+                resulting_colors.append(nparray((R, G, B)))
+            resulting_colors.extend([nparray((72, 74, 71)), nparray((250, 250, 250))])
         return resulting_colors
 
 

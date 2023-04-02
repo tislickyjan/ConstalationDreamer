@@ -6,6 +6,7 @@ import GeneralInformation as genStorage
 from Sun import Sun
 from Asteroids import Asteroids
 from Planet import Planet
+import time
 from pathlib import Path
 
 
@@ -70,10 +71,6 @@ class ConstalationDreamer:
     # def megastructures(self):
     #    ...
 
-    #TODO: Fauna and flora
-    # def biomes(self):
-    #    ...
-
     #TODO: nice to have - vsechny planety budou videt a zadna nebude za sluncem plus rovznomerne rozlozeni
 
 
@@ -81,11 +78,14 @@ if __name__ == "__main__":
     cdreamer = ConstalationDreamer()
     for i in ["Jan Tislický"]:
         print(f"dreaming about {i}")
+        start_timer = time.time()
         cdreamer.dream(i)
+        end_timer = time.time()
         cdreamer.final_image = cdreamer.draw_tool.final_image.resize(cdreamer.draw_tool.image_size // 2,
                                                                      resample=Image.LANCZOS)
         cdreamer.final_image.show()
         # cdreamer.final_image.save(Path(f"./examples/star_system_{'_'.join(i.split(' '))}_sun_surface.png"))
+        print(f"time needed to compute was {end_timer-start_timer}")
         print(f"finished {i}")
         print("-"*50)
         print()

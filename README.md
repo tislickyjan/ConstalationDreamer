@@ -18,3 +18,7 @@ Následuje nìkolik ukázek samotných soustav a následnì dosavadní stav tvorby biom
 <img src="./examples/biom_generator_3684.png" width=300>
 <img src="./examples/biom_generator_658731.png" width=300>
 </p>
+
+[ ] - Refaktorovat vykreslovani objektu, pokusit se vymyslet takový pøístup, aby nebylo nutne rozlišovat jednolive instance a pouze se volalo draw, zde bude nejvìtší problém s pásem asteroidù.
+[ ] - Refaktorovat zpùsob vykreslovani planet. Cílem bude, pøedat pøedem pøipravenou kreslici plochu, do ktere se vykreslí vzhled planety a po potøebnych upravach se vloží na specifikovane misto
+[ ] - Sjednotit pøedávané objekty do draw, aby to vše bylo buï kreslici plocha (ImageDraw) nebo jen Image
